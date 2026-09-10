@@ -26,6 +26,13 @@ export async function stripMetadata(buffer: Buffer, contentType: string): Promis
         "-y", outputPath,
       ]);
       return await readFile(outputPath);
+    } catch (e) {
+      // ffmpeg isn't bundled with the desktop app (see DESKTOP.md). Without it
+      // the video can't be scrubbed, but failing here would abort the whole
+      // mirror-to-disk step and leave the generation pointing at kie's 3-day
+      // temp URL — which no longer downloads. Keep the bytes; skip the strip.
+      console.warn("[strip-metadata] ffmpeg unavailable, storing video as-is:", (e as Error).message);
+      return buffer;
     } finally {
       await Promise.all([
         unlink(inputPath).catch(() => {}),

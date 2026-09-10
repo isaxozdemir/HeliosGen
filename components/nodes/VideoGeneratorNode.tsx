@@ -309,6 +309,7 @@ export default function VideoGeneratorNode({ id, data, selected }: NodeProps<Vid
     setIsSaving(true);
     try {
       const resp = await fetch(`/api/download?url=${encodeURIComponent(url)}&filename=${filename}`);
+      if (!resp.ok) throw new Error(`Download failed (${resp.status})`);
       const blob = await resp.blob();
       const obj = URL.createObjectURL(blob);
       const a = document.createElement("a");
