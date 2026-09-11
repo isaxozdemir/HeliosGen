@@ -19,6 +19,7 @@ import { IMAGE_MODELS, AZURE_POPULAR_SIZES, validateAzureCustomSize } from "@/li
 import { PROVIDERS, ProviderId, getModelProvider, setModelProvider, modelHasProviderChoice } from "@/lib/providers";
 import { useGeneratingBorderAnimation } from "@/lib/useGeneratingBorderAnimation";
 import MissingInputWarning from "./MissingInputWarning";
+import { downloadAsset } from "@/lib/saveFile";
 
 // Derived from config — no hardcoding needed
 const MODELS = IMAGE_MODELS.map((m) => ({ id: m.id, name: m.name, meta: m.provider }));
@@ -325,13 +326,7 @@ export default function GenerateNode({ id, data, selected }: NodeProps<GenerateN
     const filename = `image-${Date.now()}.png`;
     setIsSaving(true);
     try {
-      const resp = await fetch(`/api/download?url=${encodeURIComponent(url)}&filename=${filename}`);
-      const blob = await resp.blob();
-      const obj = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = obj; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(obj);
+      await downloadAsset(url, filename);
     } finally {
       setIsSaving(false);
     }

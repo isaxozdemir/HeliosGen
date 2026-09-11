@@ -13,6 +13,7 @@ import { ShieldBan } from "lucide-react";
 import { VIDEO_MODELS as VIDEO_MODEL_CFG } from "@/lib/modelConfig";
 import { useGeneratingBorderAnimation } from "@/lib/useGeneratingBorderAnimation";
 import MissingInputWarning from "./MissingInputWarning";
+import { downloadAsset } from "@/lib/saveFile";
 
 type VideoGeneratorNodeType = Node<NodeData, "videoGeneratorNode">;
 
@@ -308,14 +309,7 @@ export default function VideoGeneratorNode({ id, data, selected }: NodeProps<Vid
     const filename = `video-${Date.now()}.mp4`;
     setIsSaving(true);
     try {
-      const resp = await fetch(`/api/download?url=${encodeURIComponent(url)}&filename=${filename}`);
-      if (!resp.ok) throw new Error(`Download failed (${resp.status})`);
-      const blob = await resp.blob();
-      const obj = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = obj; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(obj);
+      await downloadAsset(url, filename);
     } finally {
       setIsSaving(false);
     }

@@ -7,6 +7,7 @@ import { arrangeNodes } from "@/lib/arrangeNodes";
 import { usePipelineRunner } from "@/lib/usePipelineRunner";
 import { makeZip } from "@/lib/makeZip";
 import { VIDEO_MODELS } from "@/lib/modelConfig";
+import { saveBlob } from "@/lib/saveFile";
 
 export type GroupNodeType = Node<NodeData, "groupNode">;
 
@@ -269,19 +270,12 @@ export default function GroupNode({ id, data, selected }: NodeProps<GroupNodeTyp
       const entries = await Promise.all(
         assets.map(async ({ url, name }) => {
           const resp = await fetch(`/api/download?url=${encodeURIComponent(url)}&filename=${name}`);
+          if (!resp.ok) throw new Error(`Download failed (${resp.status})`);
           const buf = await resp.arrayBuffer();
           return { name, data: new Uint8Array(buf) };
         })
       );
-      const blob = makeZip(entries);
-      const objUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = objUrl;
-      a.download = `${label || "group"}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(objUrl);
+      await saveBlob(makeZip(entries), `${label || "group"}.zip`);
     } finally {
       setIsDownloading(false);
     }
