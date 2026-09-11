@@ -57,6 +57,13 @@ export async function saveBlob(blob: Blob, filename: string): Promise<boolean> {
     return true;
   }
 
+  // Browser path. If this ever runs inside the desktop shell — Tauri failed to
+  // inject IPC into the page — the click is a no-op and the user sees nothing
+  // happen, so say so rather than reporting a silent success.
+  if (navigator.userAgent.includes("Tauri")) {
+    throw new Error("Save unavailable: the desktop bridge did not load. Restart HeliosGen.");
+  }
+
   const objectUrl = URL.createObjectURL(blob);
   try {
     const a = document.createElement("a");
